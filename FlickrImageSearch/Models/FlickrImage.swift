@@ -1,5 +1,5 @@
 //
-//  FlickrImage.swift .swift
+//  FlickrImage.swift
 //  FlickrImageSearch
 //
 //  Created by Deep kumar  on 9/27/24.
@@ -7,26 +7,25 @@
 
 import Foundation
 
-struct FlickrImage: Decodable, Identifiable {
-    let id = UUID() // Unique identifier for SwiftUI
+struct FlickrImage: Identifiable, Codable {
+    let id: String
     let title: String
-    let media: [String: String]
-    let link: String
+    let media: Media
+    let author: String
     let description: String?
-    let author: String?
     let published: String
-
-    var mediaURL: String {
-        return media["m"] ?? ""
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "link"
+        case title
+        case author
+        case description
+        case published
+        case media
     }
-
-    var formattedPublishedDate: String {
-        let dateFormatter = ISO8601DateFormatter()
-        guard let date = dateFormatter.date(from: published) else { return "Unknown Date" }
-        
-        let displayFormatter = DateFormatter()
-        displayFormatter.dateStyle = .medium
-        displayFormatter.timeStyle = .short
-        return displayFormatter.string(from: date)
+    struct Media: Codable {
+        let m: String  // The medium-sized image URL
+        let o: String? // The original image URL
     }
 }
+

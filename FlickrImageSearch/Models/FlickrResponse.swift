@@ -6,3 +6,8 @@
 //
 
 import Foundation
+
+struct FlickrResponse: Codable {
+    let items: [FlickrImage]
+    
+}

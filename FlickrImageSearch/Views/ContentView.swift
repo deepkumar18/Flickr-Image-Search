@@ -18,40 +18,17 @@ struct ContentView: View {
                     .padding()
                     .accessibilityLabel("Image search text field")
                     .accessibilityHint("Type a keyword or multiple keywords separated by commas.")
-                    Spacer()
-
+                Spacer()
+                
                 if viewModel.images.isEmpty {
                     Text("No images found. Please enter a search term.")
                         .padding()
                 } else {
-                    GridView(images: viewModel.images)
+                    ImageGridView(viewModel: viewModel)
                 }
                 Spacer()
             }
             .navigationTitle("Flickr Image Search")
-        }
-    }
-}
-
-struct GridView: View {
-    let images: [FlickrImage]
-
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2)) {
-                ForEach(images) { image in
-                    NavigationLink(destination: ImageDetailView(image: image)) {
-                        AsyncImage(url: URL(string: image.mediaURL)) { img in
-                            img.resizable()
-                                .aspectRatio(contentMode: .fit)
-                        } placeholder: {
-                            ProgressView()
-                        }
-                        .frame(height: 150)
-                    }
-                }
-            }
-            .padding()
         }
     }
 }

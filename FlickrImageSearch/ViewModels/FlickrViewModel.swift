@@ -1,6 +1,18 @@
+//
+//  FlickrServiceProtocol.swift 
+//  FlickrImageSearch
+//
+//  Created by Deep kumar  on 9/27/24.
+//
+
 import Foundation
 import SwiftUI
 import Combine
+
+// Protocol for Flickr Service to allow for dependency injection
+protocol FlickrServiceProtocol {
+    func fetchImages(for searchText: String, completion: @escaping (Result<FlickrResponse, Error>) -> Void)
+}
 
 class FlickrViewModel: ObservableObject {
     @Published var images: [FlickrImage] = []
@@ -10,8 +22,14 @@ class FlickrViewModel: ObservableObject {
         }
     }
     @Published var isLoading: Bool = false
-
+    
     private var cancellables = Set<AnyCancellable>()
+    private var service: FlickrServiceProtocol // Use the protocol for dependency injection
+
+    // Initialize with a service, defaulting to the real service
+    init(service: FlickrServiceProtocol = FlickrService()) {
+        self.service = service
+    }
 
     func fetchImages() {
         guard !searchText.isEmpty else {
@@ -21,34 +39,21 @@ class FlickrViewModel: ObservableObject {
 
         isLoading = true
         let formattedSearchText = searchText.replacingOccurrences(of: " ", with: ",")
-        let urlString = "https://api.flickr.com/services/feeds/photos_public.gne?format=json&nojsoncallback=1&tags=\(formattedSearchText)"
-
-        guard let url = URL(string: urlString) else { return }
-
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        
+        // Call the service to fetch images
+        service.fetchImages(for: formattedSearchText) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
             }
-
-            if let error = error {
-                print("Error fetching images: \(error)")
-                return
-            }
-
-            guard let data = data else {
-                print("No data received")
-                return
-            }
-
-            do {
-                let response = try JSONDecoder().decode(FlickrResponse.self, from: data)
+            
+            switch result {
+            case .success(let response):
                 DispatchQueue.main.async {
                     self?.images = response.items
                 }
-            } catch {
-                print("Error decoding response: \(error)")
+            case .failure(let error):
+                print("Error fetching images: \(error)")
             }
-        }.resume()
+        }
     }
 }
-
